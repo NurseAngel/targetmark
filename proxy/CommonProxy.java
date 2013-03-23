@@ -1,6 +1,5 @@
-package nurseangel.TargetMark.proxy;
+package mods.nurseangel.targetmark.proxy;
 
-public class CommonProxy {
-	public void registerRenderers() {
-	}
+public class CommonProxy
+{
 }
