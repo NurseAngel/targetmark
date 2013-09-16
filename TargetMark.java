@@ -33,7 +33,7 @@ public class TargetMark
     public static BlockTargetMark BlockTargetMark, BlockTargetMarkLighting;
 
     // コンストラクタ的なもの
-    @Mod.PreInit
+    @Mod.EventHandler
     public void myPreInitMethod(FMLPreInitializationEvent event)
     {
         Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
@@ -57,7 +57,7 @@ public class TargetMark
     }
 
     // load()なもの
-    @Mod.Init
+    @Mod.EventHandler
     public void myInitMethod(FMLInitializationEvent event)
     {
         addTargetMarkBlock();
