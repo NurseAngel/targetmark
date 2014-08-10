@@ -1,91 +1,66 @@
-package mods.nurseangel.targetmark;
+package com.github.nurseangel.targetmark;
 
-import java.util.logging.Level;
-
-import mods.nurseangel.targetmark.proxy.CommonProxy;
-import net.minecraft.block.Block;
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.item.Item;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
-import net.minecraft.src.ModLoader;
-import net.minecraftforge.common.Configuration;
-import cpw.mods.fml.common.FMLLog;
+
+import com.github.nurseangel.targetmark.proxy.CommonProxy;
+
 import cpw.mods.fml.common.Mod;
+import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
-import cpw.mods.fml.common.network.NetworkMod;
+import cpw.mods.fml.common.registry.GameRegistry;
 
-@Mod(modid = Reference.MOD_ID, name = Reference.MOD_NAME, version = Reference.VERSION)
-@NetworkMod(clientSideRequired = true, serverSideRequired = false)
+@Mod(modid = Reference.MODID, name=Reference.MODNAME, version = Reference.VERSION)
 public class TargetMark
 {
-    @SidedProxy(clientSide = Reference.CLIENT_PROXY_CLASS, serverSide = Reference.SERVER_PROXY_CLASS)
-    public static CommonProxy proxy;
 
-    @Mod.Instance(Reference.MOD_ID)
-    public static TargetMark instance;
+	@SidedProxy(modId = Reference.MODID, clientSide = Reference.CLIENT_PROXY_CLASS, serverSide = Reference.SERVER_PROXY_CLASS)
+	public static CommonProxy proxy;
 
-    public static boolean isTest = false;
+	public static BlockTargetMark targetMark;
+	public static BlockTargetMark targetMarkLighting;
 
-    // ブロック
-    public static int targetMarkBlockID, targetMarkBlockIDLighting;
-    public static BlockTargetMark BlockTargetMark, BlockTargetMarkLighting;
+	/* always false */
+	public static boolean isTest = false;
 
-    // コンストラクタ的なもの
-    @Mod.EventHandler
-    public void myPreInitMethod(FMLPreInitializationEvent event)
-    {
-        Configuration cfg = new Configuration(event.getSuggestedConfigurationFile());
-        int blockIdStart = 1255;
+	/**
+	 * 初期化
+	 *
+	 * @param event
+	 */
+	@EventHandler
+	public void myPreInitMethod(FMLPreInitializationEvent event)
+	{
+	}
 
-        try
-        {
-            cfg.load();
-            targetMarkBlockID = cfg.getBlock("targetMarkBlockID", blockIdStart++).getInt();
-            targetMarkBlockIDLighting = cfg.getBlock("targetMarkBlockIDLighting", blockIdStart++).getInt();
-            isTest = cfg.get(Configuration.CATEGORY_GENERAL, "isTest", false, "Always false").getBoolean(false);
-        }
-        catch (Exception e)
-        {
-            FMLLog.log(Level.SEVERE, Reference.MOD_NAME + " configuration loadding failed");
-        }
-        finally
-        {
-            cfg.save();
-        }
-    }
+	/**
+	 * メイン処理
+	 *
+	 * @param event
+	 */
+	@EventHandler
+	public void myInitMethod(FMLInitializationEvent event)
+	{
 
-    // load()なもの
-    @Mod.EventHandler
-    public void myInitMethod(FMLInitializationEvent event)
-    {
-        addTargetMarkBlock();
-    }
+		targetMark = new BlockTargetMark(false);
+		targetMark.setBlockName("targetMark").setCreativeTab(CreativeTabs.tabRedstone);
+		// 光ってる方はクリエイティブタブに入れない
+		targetMarkLighting = new BlockTargetMark(true);
+		targetMarkLighting.setBlockName("targetMarkLighting");
 
-    private void addTargetMarkBlock()
-    {
-        // 光らないほう
-        BlockTargetMark = new BlockTargetMark(targetMarkBlockID, false);
-        BlockTargetMark.setUnlocalizedName("BlockTargetMark").setCreativeTab(CreativeTabs.tabRedstone);
-        ModLoader.registerBlock(BlockTargetMark);
-        ModLoader.addName(BlockTargetMark, "BlockTargetMark");
-        // 光る方 こっちはクリエイティブに入れない
-        BlockTargetMarkLighting = new BlockTargetMark(targetMarkBlockIDLighting, true);
-        BlockTargetMarkLighting.setUnlocalizedName("BlockTargetMarkLighting");
-        ModLoader.registerBlock(BlockTargetMarkLighting);
-        ModLoader.addName(BlockTargetMarkLighting, "BlockTargetMarkLighting");
-        // レシピ
-        ModLoader.addRecipe(new ItemStack(BlockTargetMark), new Object[] { "WWW", "WRW", "WWW", 'W', Block.wood, 'R', Item.redstone });
+		// ゲームに登録
+		GameRegistry.registerBlock(targetMark, ItemBlockTargetMark.class,
+				targetMark.getUnlocalizedName().replace("tile.", ""));
+		GameRegistry.registerBlock(targetMarkLighting, ItemBlockTargetMark.class, targetMarkLighting
+				.getUnlocalizedName().replace("tile.", ""));
 
-        // デバッグレシピ
-        if (isTest)
-        {
-            ModLoader.addRecipe(new ItemStack(BlockTargetMark), new Object[] { "D", 'D', Block.dirt });
-            ModLoader.addRecipe(new ItemStack(Block.redstoneWire, 64), new Object[] { "DD", 'D', Block.dirt });
-            ModLoader.addRecipe(new ItemStack(Item.bow), new Object[] { "DDD", 'D', Block.dirt });
-            ModLoader.addRecipe(new ItemStack(Item.arrow, 64), new Object[] { "D D", 'D', Block.dirt });
-            ModLoader.addRecipe(new ItemStack(Block.redstoneLampIdle, 64), new Object[] { "D", "D", 'D', Block.dirt });
-        }
-    }
+		// 先にregisterしてからじゃないとエラー
+		GameRegistry.addRecipe(new ItemStack(targetMark), new Object[] { "WWW", "WRW", "WWW", 'W', Blocks.log, 'R',
+				Blocks.redstone_torch });
+
+	}
+
 }

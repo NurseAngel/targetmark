@@ -1,4 +1,4 @@
-package mods.nurseangel.targetmark;
+package com.github.nurseangel.targetmark;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -7,10 +7,12 @@ import java.util.Random;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
-import net.minecraft.client.renderer.texture.IconRegister;
+import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.projectile.EntityArrow;
-import net.minecraft.util.Icon;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import cpw.mods.fml.client.FMLClientHandler;
@@ -19,9 +21,6 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 public class BlockTargetMark extends Block {
-	/*
-	 * 光のあたりはレッドストーンランプを参考 レッドストーン動力のあたりは感圧板などを参考
-	 */
 
 	// 刺さってる矢のID
 	Map<String, Integer> arrowMap = Collections.synchronizedMap(new HashMap<String, Integer>());
@@ -29,26 +28,28 @@ public class BlockTargetMark extends Block {
 	// 光ってる
 	private final boolean isLighting;
 
-	private Icon iconTop;
-
-	private Icon iconSide;
+	@SideOnly(Side.CLIENT)
+	private IIcon iconTop;
+	@SideOnly(Side.CLIENT)
+	private IIcon iconSide;
 
 	/**
 	 * コンストラクタ
 	 *
-	 * @param blockId
-	 *            自分のBlockID
 	 * @param isLighting
 	 *            光ってるか
 	 */
-	public BlockTargetMark(int blockId, boolean isLighting) {
-		super(blockId, Material.circuits);
+	public BlockTargetMark(boolean isLighting) {
+		super(Material.circuits);
+
 		this.isLighting = isLighting;
-		setHardness(0.5F).setStepSound(Block.soundWoodFootstep);
+		setHardness(0.5F).setStepSound(Block.soundTypeWood);
 
 		if (this.isLighting) {
-			setLightValue(1.0F);
+			setLightLevel(1.0F);
 		}
+
+		this.setBlockTextureName(Reference.TEXTURE_SIDE);
 	}
 
 	/**
@@ -66,7 +67,9 @@ public class BlockTargetMark extends Block {
 	 */
 	@Override
 	@SideOnly(Side.CLIENT)
-	public void registerIcons(IconRegister iconRegister) {
+	public void registerBlockIcons(IIconRegister iconRegister) {
+		super.registerBlockIcons(iconRegister);
+
 		this.iconTop = iconRegister.registerIcon(Reference.TEXTURE_TOP);
 		this.iconSide = iconRegister.registerIcon(Reference.TEXTURE_SIDE);
 	}
@@ -78,7 +81,7 @@ public class BlockTargetMark extends Block {
 	 * @param 取得する方角
 	 * @param メタデータ
 	 */
-	public Icon getIcon(int side, int metadata) {
+	public IIcon getIcon(int side, int metadata) {
 		// 上下
 		if (side < 2) {
 			return this.iconTop;
@@ -90,6 +93,7 @@ public class BlockTargetMark extends Block {
 
 	/**
 	 * エンティティがブロックに触れたら呼ばれる 刺さったままであれば何度も呼ばれる
+	 *
 	 */
 	@Override
 	public void onEntityCollidedWithBlock(World par1World, int par2, int par3, int par4, Entity par5Entity) {
@@ -177,9 +181,10 @@ public class BlockTargetMark extends Block {
 	 */
 	private void setBlockLighting(World par1World, int x, int y, int z) {
 		showMessage("HIT x=" + x + " y=" + y + " z=" + z);
-		par1World.setBlock(x, y, z, TargetMark.targetMarkBlockIDLighting, 0, 3);
+		par1World.setBlock(x, y, z, TargetMark.targetMarkLighting, 0, 3);
+
 		// 次回呼び出し予約
-		par1World.scheduleBlockUpdate(x, y, z, TargetMark.targetMarkBlockIDLighting, tickRate(par1World));
+		par1World.scheduleBlockUpdate(x, y, z, TargetMark.targetMarkLighting, tickRate(par1World));
 	}
 
 	/**
@@ -192,7 +197,7 @@ public class BlockTargetMark extends Block {
 	 */
 	private void setBlockNoLighting(World par1World, int x, int y, int z) {
 		showMessage("false x=" + x + " y=" + y + " z=" + z);
-		par1World.setBlock(x, y, z, TargetMark.targetMarkBlockID, 0, 3);
+		par1World.setBlock(x, y, z, TargetMark.targetMark, 0, 3);
 		// 次回呼び出し予約はしない。暗くなって終わり
 	}
 
@@ -227,7 +232,7 @@ public class BlockTargetMark extends Block {
 				Side side = FMLCommonHandler.instance().getSide();
 
 				if (side.isClient()) {
-					FMLClientHandler.instance().getClient().thePlayer.addChatMessage(message);
+					FMLClientHandler.instance().getClient().thePlayer.sendChatMessage(message);
 				}
 			} catch (Exception e) {
 			}
@@ -235,10 +240,15 @@ public class BlockTargetMark extends Block {
 	}
 
 	/**
-	 * ブロックを壊したときに落とすブロックID
+	 * ブロックを壊したときに落とすブロック
 	 */
-	public int idDropped(int par1, Random par2Random, int par3) {
-		// 光らない方
-		return TargetMark.targetMarkBlockID;
+	@Override
+	public Item getItemDropped(int p_149650_1_, Random p_149650_2_, int p_149650_3_) {
+		return Item.getItemFromBlock(TargetMark.targetMark);
 	}
+
+	public ItemStack getItemStack() {
+		return createStackedBlock(0);
+	}
+
 }

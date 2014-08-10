@@ -1,11 +1,22 @@
-package mods.nurseangel.targetmark.proxy;
+package com.github.nurseangel.targetmark.proxy;
 
-import mods.nurseangel.targetmark.Reference;
-import net.minecraftforge.client.MinecraftForgeClient;
+import net.minecraft.server.MinecraftServer;
+import cpw.mods.fml.client.FMLClientHandler;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
+/**
+ * クライアント側
+ */
 @SideOnly(Side.CLIENT)
 public class ClientProxy extends CommonProxy
 {
+	@Override
+	public MinecraftServer getServer()
+	{
+		return FMLClientHandler.instance().getServer();
+	}
+
+
+
 }
